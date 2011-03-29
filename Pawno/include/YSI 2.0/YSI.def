@@ -1,7 +1,0 @@
-LIBRARY	"YSI"
-EXPORTS
-	Supports
-	Load
-	Unload
-	AmxLoad
-	AmxUnload
