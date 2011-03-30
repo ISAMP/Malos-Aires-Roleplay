@@ -105,6 +105,14 @@ public OnPlayerConnect(playerid)
 	return 0;
 }
 
+public OnPlayerSpawn(playerid)
+{
+	if(IsPlayerNPC(playerid)) return 1;
+
+
+	return 0;
+}
+
 public OnPlayerRequestClass(playerid, classid)
 {
 	if(IsPlayerNPC(playerid)) return 1;
