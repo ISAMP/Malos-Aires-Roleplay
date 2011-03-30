@@ -80,58 +80,95 @@ main()
 
 // Callbacks
 //------------------------------------------------------
-public OnGameModeInit()
-{
-	MySQLConnect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB);
-	SetGameModeText("RolePlay Espanol");
-	SendRconCommand("mapname Malos Aires");
-	SendRconCommand("weburl www.imperiumgames.com.ar");
-	ShowNameTags(0);
-	ShowPlayerMarkers(0);
-	EnableStuntBonusForAll(0);
-	DisableInteriorEnterExits();
-	return 0;
-}
 
-public OnPlayerConnect(playerid)
-{
-	new string[256];
-	new playerName[MAX_PLAYER_NAME];
-	GetPlayerName(playerid, playerName, sizeof(playerName));
-    if(IsPlayerNPC(playerid)) return 1;
-    SetPlayerColor(playerid,COLOR_GRAD2);
-	format(string, sizeof(string), "Servidor: {AFAFAF}%s [%d] ha entrado a Imperium SA-MP RolePlay.", playerName, playerid);
-	SendClientMessageToAll(COLOR_WHITE, string);
-	return 0;
-}
-
-public OnPlayerSpawn(playerid)
-{
-	if(IsPlayerNPC(playerid)) return 1;
-
-
-	return 0;
-}
-
-public OnPlayerRequestClass(playerid, classid)
-{
-	if(IsPlayerNPC(playerid)) return 1;
-	
-	if(GetPlayerState(playerid) != PLAYER_STATE_SPECTATING)
+	// OnGameModeInit
+	//------------------------------------------------------
+	public OnGameModeInit()
 	{
-		TogglePlayerSpectating(playerid, 1);
+		MySQLConnect(MYSQL_HOST, MYSQL_USER, MYSQL_PASS, MYSQL_DB);
+		SetGameModeText("RolePlay Espanol");
+		SendRconCommand("mapname Malos Aires");
+		SendRconCommand("weburl www.imperiumgames.com.ar");
+		ShowNameTags(0);
+		ShowPlayerMarkers(0);
+		EnableStuntBonusForAll(0);
+		DisableInteriorEnterExits();
+		return 0;
 	}
 
-	return 0;
-}
+	// OnPlayerConnect
+	//------------------------------------------------------
+	public OnPlayerConnect(playerid)
+	{
+		new string[256];
+		new playerName[MAX_PLAYER_NAME];
+		GetPlayerName(playerid, playerName, sizeof(playerName));
+	    if(IsPlayerNPC(playerid)) return 1;
+	    SetPlayerColor(playerid,COLOR_GRAD2);
+		format(string, sizeof(string), "Servidor: {AFAFAF}%s [%d] ha entrado a Imperium SA-MP RolePlay.", playerName, playerid);
+		SendClientMessageToAll(COLOR_WHITE, string);
+		return 0;
+	}
 
-public OnPlayerText(playerid, text[])
+	// OnPlayerSpawn
+	//------------------------------------------------------
+	public OnPlayerSpawn(playerid)
+	{
+		if(IsPlayerNPC(playerid)) return 1;
+
+		// Spawn en la Casa de Gobierno
+		SetPlayerColor(playerid, COLOR_WHITE);
+		SetPlayerInterior(playerid, 0);
+		SetPlayerVirtualWorld(playerid, 0);
+		SetPlayerPos(playerid, 1486.4741, -1758.3142, 17.5313);
+		return 1;
+	}
+
+	// OnPlayerRequestClass
+	//------------------------------------------------------
+	public OnPlayerRequestClass(playerid, classid)
+	{
+		if(IsPlayerNPC(playerid)) return 1;
+		
+		SpawnPlayer(playerid);
+
+		if(GetPlayerState(playerid) != PLAYER_STATE_SPECTATING)
+		{
+			//TogglePlayerSpectating(playerid, 1);
+		}
+
+		return 0;
+	}
+	
+	// OnPlayerText
+	//------------------------------------------------------
+	public OnPlayerText(playerid, text[])
+	{
+		new string[256];
+		new playerName[MAX_PLAYER_NAME];
+		GetPlayerName(playerid, playerName, sizeof(playerName));
+		format(string, sizeof(string), "%s dice: %s", playerName, text);
+		ProxDetector(20.0, playerid, string, COLOR_FADE1, COLOR_FADE2, COLOR_FADE3, COLOR_FADE4, COLOR_FADE5);
+		return 0;
+	}
+	
+// DCMD
+//------------------------------------------------------
+
+// Comando de Prueba
+dcmd_conectar(playerid, params[])
 {
-	new string[256];
-	new playerName[MAX_PLAYER_NAME];
-	GetPlayerName(playerid, playerName, sizeof(playerName));
-	format(string, sizeof(string), "%s dice: %s", playerName, text);
-	ProxDetector(20.0, playerid, string, COLOR_FADE1, COLOR_FADE2, COLOR_FADE3, COLOR_FADE4, COLOR_FADE5);
+	#pragma unused params
+	SetSpawnInfo(playerid, 0, 0, 1486.4741, -1758.3142, 17.5313, 269.15, 0, 0, 0, 0, 0, 0);
+	SpawnPlayer(playerid);
+	return 1;
 }
 
+// OnPlayerCommandText
+//------------------------------------------------------
+public OnPlayerCommandText(playerid, cmdtext[])
+{
+    dcmd(conectar, 5, cmdtext);
+    return 1;
+}
 
