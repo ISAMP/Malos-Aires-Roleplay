@@ -27,9 +27,12 @@
 #include <a_samp>
 #include <core>
 
+#include <isamp/defines>
+
 // Prototipos de Funciones
 //------------------------------------------------------
 forward ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5);
+forward ClearChatBox(playerid, lines);
 
 // Funciones
 //------------------------------------------------------
@@ -77,6 +80,14 @@ public ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5)
 		}
 	}
 	return 1;
+}
+
+public ClearChatBox(playerid, lines)
+{
+	for(new i=0; i < lines; i++)
+	{
+		SendClientMessage(playerid, COLOR_WHITE, "");
+	}
 }
 
 strtok(const string[], &index)

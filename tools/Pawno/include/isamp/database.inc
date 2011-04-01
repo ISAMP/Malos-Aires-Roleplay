@@ -27,10 +27,10 @@
 #include <a_samp>
 #include <core>
 
+#include <isamp/defines>
+
 // Variables Globales/Defines
 //------------------------------------------------------
-#define CHARINFOTABLE "rp_charinfo"
-
 new MYSQL_HOST[64];
 new MYSQL_USER[64];
 new MYSQL_PASS[64];
@@ -48,6 +48,7 @@ forward MySQLUpdateStr(sqltable[], sqlvalname[], sqlupdatestr[], condicion[]);
 forward MySQLCountRows(table[], condicion[]);
 forward MySQLCheckPlayer(playername[]);
 forward MySQLRegisterPlayer(playername[], password[]);
+forward MySQLGetPlayerID(playername[]);
 
 // Funciones
 //------------------------------------------------------
@@ -142,7 +143,6 @@ public MySQLUpdateFlo(sqltable[], sqlvalname[], Float:sqlupdateflo, condicion[])
 public MySQLUpdateStr(sqltable[], sqlvalname[], sqlupdatestr[], condicion[])
 {
 	new updval[256];
-	//mysql_real_escape_string(sqlupdatestr, sqlupdatestr);
 	format(updval, sizeof(updval), "UPDATE `%s` SET `%s`='%s' %s", sqltable, sqlvalname, sqlupdatestr, condicion);
 	mysql_query(updval);
 	return 1;
@@ -181,8 +181,17 @@ public MySQLRegisterPlayer(playername[], password[])
 	mysql_query(query);
 	format(condicion, sizeof(condicion), "WHERE `IDChar`=%d",IDChar); 
 	MySQLUpdateStr(CHARINFOTABLE, "Name", playername, condicion);
-	MySQLUpdateStr(CHARINFOTABLE, "Key", password, condicion);
+	new updval[256];
+	format(updval, sizeof(updval), "UPDATE `%s` SET `Key`=MD5('%s') %s", CHARINFOTABLE, password, condicion);
+	mysql_query(updval);
 	return 1;
+}
+
+public MySQLGetPlayerID(playername[])
+{
+	new condicion[128];
+	format(condicion, sizeof(condicion), "WHERE `Name`='%s'", playername);
+	return MySQLGetInt(CHARINFOTABLE, "IDChar", condicion);
 }
 
 stock splita(const strsrc[], strdest[][], delimiter)

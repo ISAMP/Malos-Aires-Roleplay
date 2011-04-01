@@ -32,6 +32,7 @@
 
 #include <isamp/database>
 #include <isamp/functions>
+#include <isamp/defines>
 
 #pragma tabsize 0
 
@@ -41,41 +42,47 @@
 
 // Variables Globales/Defines
 //------------------------------------------------------
-#define dcmd(%1,%2,%3) if ((strcmp((%3)[1], #%1, true, (%2)) == 0) && ((((%3)[(%2) + 1] == 0) && (dcmd_%1(playerid, "")))||(((%3)[(%2) + 1] == 32) && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
-#define COLOR_ASKQ 0xFF0000FF
-#define COLOR_GRAD1 0xB4B5B7FF
-#define COLOR_GRAD2 0xBFC0C2FF
-#define COLOR_GRAD3 0xCBCCCEFF
-#define COLOR_GRAD4 0xD8D8D8FF
-#define COLOR_GRAD5 0xE3E3E3FF
-#define COLOR_GRAD6 0xF0F0F0FF
-#define COLOR_GREY 0xAFAFAFFF
-#define COLOR_GREEN 0x9EC73DFF
-#define COLOR_RED 0xAA3333FF
-#define COLOR_LIGHTRED 0xFF6347FF
-#define COLOR_LIGHTBLUE 0x33CCFFFF
-#define COLOR_LIGHTGREEN 0x9ACD32FF
-#define COLOR_YELLOW 0xDABB3EFF
-#define COLOR_YELLOW2 0xF5DEB3FF
-#define COLOR_WHITE 0xFFFFFFFF
-#define COLOR_FADE1 0xE6E6E6FF
-#define COLOR_FADE2 0xC8C8C8FF
-#define COLOR_FADE3 0xAAAAAAFF
-#define COLOR_FADE4 0x8C8C8CFF
-#define COLOR_FADE5 0x6E6E6EFF
-#define COLOR_PURPLE 0xC2A2DAFF
+
 
 // Prototipos de Funciones
 //------------------------------------------------------
-
+forward LoginPlayer(playerid, password[]);
 
 // Funciones
 //------------------------------------------------------
+
+// main
 main()
 {
 	print("---------------------------------------");
 	print("Imperium SA-MP Roleplay");
 	print("---------------------------------------");
+}
+
+// LoginPlayer
+public LoginPlayer(playerid, password[])
+{
+    new string[256];
+	new PlayerName[MAX_PLAYER_NAME];
+	GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
+    format(Condicion, sizeof(Condicion), "WHERE `Name`='%s' AND `Key`=MD5('%s')", PlayerName, password);
+    // Existe?
+    if(MySQLCountRows(CHARINFOTABLE, Condicion))
+    {
+		format(string, sizeof(string), "Servidor: {AFAFAF}Logueaste con éxito.");
+		SendClientMessage(playerid, COLOR_WHITE, string);
+		SetPVarString(playerid, "Key", password);
+		SetPVarInt(playerid, "IDChar", MySQLGetPlayerID(PlayerName));
+		SetPVarInt(playerid, "Logged", 1);
+		format(Condicion, sizeof(Condicion), "WHERE `IDChar`=%d", MySQLGetPlayerID(PlayerName));
+		SetPVarInt(playerid, "Skin", MySQLGetInt(CHARDATATABLE, "Skin", Condicion));
+        SpawnPlayer(playerid);
+    }
+    else // No Existe?
+    {
+		SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Contraseña Incorrecta.");
+    }
+    return 1;
 }
 
 // Callbacks
@@ -107,6 +114,9 @@ main()
 	    SetPlayerColor(playerid,COLOR_GRAD2);
 		format(string, sizeof(string), "Servidor: {AFAFAF}%s [%d] ha entrado a Imperium SA-MP RolePlay.", PlayerName, playerid);
 		SendClientMessageToAll(COLOR_WHITE, string);
+		SendClientMessage(playerid, COLOR_LIGHTGREEN, "___ {F5DEB3}¡Bienvenido a Imperium SA-MP RolePlay!{9ACD32} ___");
+		SendClientMessage(playerid, COLOR_LIGHTGREEN, "_____________________________________________");
+		ClearChatBox(playerid, 5);
 		if(MySQLCheckPlayer(PlayerName))
 		{
 			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/conectar [contraseña]\" para conectarte al servidor.", PlayerName, playerid);
@@ -114,9 +124,20 @@ main()
 		}
 		else
 		{
+			format(string, sizeof(string), "Servidor: {AFAFAF}¡No estás registrado en Imperium SA-MP Roleplay!", PlayerName, playerid);
+			SendClientMessage(playerid, COLOR_WHITE, string);
 			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/registrar [contraseña]\" para registrarte en el servidor.", PlayerName, playerid);
 			SendClientMessage(playerid, COLOR_WHITE, string);
 		}
+		return 1;
+	}
+
+	// OnPlayerUpdate
+	//------------------------------------------------------
+	public OnPlayerUpdate(playerid)
+	{
+		if(!IsPlayerConnected(playerid)) return 0;
+		
 		return 1;
 	}
 
@@ -127,6 +148,7 @@ main()
 		if(IsPlayerNPC(playerid)) return 1;
 
 		// Spawn en la Casa de Gobierno
+		SetPlayerSkin(playerid, GetPVarInt(playerid, "Skin"));
 		SetPlayerColor(playerid, COLOR_WHITE);
 		SetPlayerInterior(playerid, 0);
 		SetPlayerVirtualWorld(playerid, 0);
@@ -141,6 +163,7 @@ main()
 		if(IsPlayerNPC(playerid)) return 1;
 		
 		SpawnPlayer(playerid);
+		OnPlayerSpawn(playerid);
 
 		return 0;
 	}
@@ -152,6 +175,8 @@ main()
 		new string[256];
 		new PlayerName[MAX_PLAYER_NAME];
 		GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
+		// Checkeos
+		if(!GetPVarInt(playerid, "Logged")) return 0;
 		format(string, sizeof(string), "%s dice: %s", PlayerName, text);
 		ProxDetector(20.0, playerid, string, COLOR_FADE1, COLOR_FADE2, COLOR_FADE3, COLOR_FADE4, COLOR_FADE5);
 		return 0;
@@ -160,32 +185,45 @@ main()
 // DCMD
 //------------------------------------------------------
 
-// Registrarse
-dcmd_registrar(playerid, params[])
-{
-	new idx;
-	new string[256];
-	new PlayerName[MAX_PLAYER_NAME];
-	new Password[256];
-	GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
-	if(MySQLCheckPlayer(PlayerName))
+	// Registrarse
+	dcmd_registrar(playerid, params[])
 	{
-		format(string, sizeof(string), "Servidor: {AFAFAF}Este nombre ya está Registrado. Use /conectar para ingresar al servidor.", PlayerName, playerid);
-		SendClientMessage(playerid, COLOR_WHITE, string);
+		new idx;
+		new Password[256];
+		new PlayerName[MAX_PLAYER_NAME];
+		GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
+		// Checkeos
+		if(strcmp(params,"", true)) return SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Uso: \"/registrar [contraseña]\"");
+		if(GetPVarInt(playerid, "Logged")) return 1;
+		if(MySQLCheckPlayer(PlayerName)) return SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Este nombre ya está Registrado. Use /conectar para ingresar al servidor.");
+		// Registramos y Logueamos
+		Password = strtok(params, idx);
+		MySQLRegisterPlayer(PlayerName, Password);
+		SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}¡Gracias por registrarse en Imperium SA-MP Roleplay!");
+		LoginPlayer(playerid, Password);
 		return 1;
 	}
-	Password = strtok(params, idx);
-	MySQLRegisterPlayer(PlayerName, Password);
-	format(string, sizeof(string), "Servidor: {AFAFAF}¡Gracias por registrarse en Imperium SA-MP Roleplay!", PlayerName, playerid);
-	SendClientMessage(playerid, COLOR_WHITE, string);
-	return 1;
-}
 
-// OnPlayerCommandText
-//------------------------------------------------------
-public OnPlayerCommandText(playerid, cmdtext[])
-{
-    dcmd(registrar, 9, cmdtext);
-    return 0;
-}
+	// Conectarse
+	dcmd_conectar(playerid, params[])
+	{
+		new idx;
+		new Password[256];
+		// Checkeos
+		if(strcmp(params,"", true)) return SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Uso: \"/conectar [contraseña]\"");
+		if(GetPVarInt(playerid, "Logged")) return 1;
+		// Logueamos
+		Password = strtok(params, idx);
+		LoginPlayer(playerid, Password);
+		return 1;
+	}
+
+	// OnPlayerCommandText
+	//------------------------------------------------------
+	public OnPlayerCommandText(playerid, cmdtext[])
+	{
+	    dcmd(registrar, 9, cmdtext);
+	    dcmd(conectar, 8, cmdtext);
+	    return 0;
+	}
 
