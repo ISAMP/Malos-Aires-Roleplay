@@ -2,7 +2,7 @@
 
 /*
 	GameMode Oficial Imperium SA-MP
-    Copyright (C) 2011  Rodrigo Troncoso
+    Copyright (C) 2011  Imperium Games
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,7 +93,7 @@ main()
 		ShowPlayerMarkers(0);
 		EnableStuntBonusForAll(0);
 		DisableInteriorEnterExits();
-		return 0;
+		return 1;
 	}
 
 	// OnPlayerConnect
@@ -101,13 +101,23 @@ main()
 	public OnPlayerConnect(playerid)
 	{
 		new string[256];
-		new playerName[MAX_PLAYER_NAME];
-		GetPlayerName(playerid, playerName, sizeof(playerName));
+		new PlayerName[MAX_PLAYER_NAME];
+		GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
 	    if(IsPlayerNPC(playerid)) return 1;
 	    SetPlayerColor(playerid,COLOR_GRAD2);
-		format(string, sizeof(string), "Servidor: {AFAFAF}%s [%d] ha entrado a Imperium SA-MP RolePlay.", playerName, playerid);
+		format(string, sizeof(string), "Servidor: {AFAFAF}%s [%d] ha entrado a Imperium SA-MP RolePlay.", PlayerName, playerid);
 		SendClientMessageToAll(COLOR_WHITE, string);
-		return 0;
+		if(MySQLCheckPlayer(PlayerName))
+		{
+			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/conectar [contraseña]\" para conectarte al servidor.", PlayerName, playerid);
+			SendClientMessage(playerid, COLOR_WHITE, string);
+		}
+		else
+		{
+			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/registrar [contraseña]\" para registrarte en el servidor.", PlayerName, playerid);
+			SendClientMessage(playerid, COLOR_WHITE, string);
+		}
+		return 1;
 	}
 
 	// OnPlayerSpawn
@@ -132,11 +142,6 @@ main()
 		
 		SpawnPlayer(playerid);
 
-		if(GetPlayerState(playerid) != PLAYER_STATE_SPECTATING)
-		{
-			//TogglePlayerSpectating(playerid, 1);
-		}
-
 		return 0;
 	}
 	
@@ -145,9 +150,9 @@ main()
 	public OnPlayerText(playerid, text[])
 	{
 		new string[256];
-		new playerName[MAX_PLAYER_NAME];
-		GetPlayerName(playerid, playerName, sizeof(playerName));
-		format(string, sizeof(string), "%s dice: %s", playerName, text);
+		new PlayerName[MAX_PLAYER_NAME];
+		GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
+		format(string, sizeof(string), "%s dice: %s", PlayerName, text);
 		ProxDetector(20.0, playerid, string, COLOR_FADE1, COLOR_FADE2, COLOR_FADE3, COLOR_FADE4, COLOR_FADE5);
 		return 0;
 	}
@@ -155,12 +160,24 @@ main()
 // DCMD
 //------------------------------------------------------
 
-// Comando de Prueba
-dcmd_conectar(playerid, params[])
+// Registrarse
+dcmd_registrar(playerid, params[])
 {
-	#pragma unused params
-	SetSpawnInfo(playerid, 0, 0, 1486.4741, -1758.3142, 17.5313, 269.15, 0, 0, 0, 0, 0, 0);
-	SpawnPlayer(playerid);
+	new idx;
+	new string[256];
+	new PlayerName[MAX_PLAYER_NAME];
+	new Password[256];
+	GetPlayerName(playerid, PlayerName, sizeof(PlayerName));
+	if(MySQLCheckPlayer(PlayerName))
+	{
+		format(string, sizeof(string), "Servidor: {AFAFAF}Este nombre ya está Registrado. Use /conectar para ingresar al servidor.", PlayerName, playerid);
+		SendClientMessage(playerid, COLOR_WHITE, string);
+		return 1;
+	}
+	Password = strtok(params, idx);
+	MySQLRegisterPlayer(PlayerName, Password);
+	format(string, sizeof(string), "Servidor: {AFAFAF}¡Gracias por registrarse en Imperium SA-MP Roleplay!", PlayerName, playerid);
+	SendClientMessage(playerid, COLOR_WHITE, string);
 	return 1;
 }
 
@@ -168,7 +185,7 @@ dcmd_conectar(playerid, params[])
 //------------------------------------------------------
 public OnPlayerCommandText(playerid, cmdtext[])
 {
-    dcmd(conectar, 5, cmdtext);
-    return 1;
+    dcmd(registrar, 9, cmdtext);
+    return 0;
 }
 

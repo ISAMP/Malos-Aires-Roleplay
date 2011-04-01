@@ -22,8 +22,15 @@
 // Encargados del Script: Nevermore, Froda, Rodam, Razzo
 //------------------------------------------------------
 
+// Includes Generales
+//------------------------------------------------------
+#include <a_samp>
+#include <core>
+
 // Variables Globales/Defines
 //------------------------------------------------------
+#define CHARINFOTABLE "rp_charinfo"
+
 new MYSQL_HOST[64];
 new MYSQL_USER[64];
 new MYSQL_PASS[64];
@@ -32,9 +39,15 @@ new MYSQL_DB[64];
 // Prototipos de Funciones
 //------------------------------------------------------
 forward MySQLConnect(sqlhost[], sqluser[], sqlpass[], sqldb[]);
-forward MySQLGetStr(sqlid, sqltable[], sqlvalname[], sqldest[]);
-forward MySQLGetInt(sqlid, sqltable[], sqlvalname[]);
-forward MySQLGetFlo(sqlid, sqltable[], sqlvalname[], &Float:sqldest);
+forward MySQLGetStr(sqltable[], sqlvalname[], sqldest[], condicion[]);
+forward MySQLGetInt(sqltable[], sqlvalname[], condicion[]);
+forward MySQLGetFlo(sqltable[], sqlvalname[], &Float:sqldest, condicion[]);
+forward MySQLUpdateInt(sqltable[], sqlvalname[], sqlupdateint, condicion[]);
+forward MySQLUpdateFlo(sqltable[], sqlvalname[], Float:sqlupdateflo, condicion[]);
+forward MySQLUpdateStr(sqltable[], sqlvalname[], sqlupdatestr[], condicion[]);
+forward MySQLCountRows(table[], condicion[]);
+forward MySQLCheckPlayer(playername[]);
+forward MySQLRegisterPlayer(playername[], password[]);
 
 // Funciones
 //------------------------------------------------------
@@ -65,10 +78,10 @@ public MySQLConnect(sqlhost[], sqluser[], sqlpass[], sqldb[])
 	return 1;
 }
 
-public MySQLGetStr(sqlid, sqltable[], sqlvalname[], sqldest[])
+public MySQLGetStr(sqltable[], sqlvalname[], sqldest[], condicion[])
 {
 	new query[256];
-	format(query, sizeof(query), "SELECT `%s` FROM `%s` WHERE `id` = %d", sqlvalname, sqltable, sqlid);
+	format(query, sizeof(query), "SELECT `%s` FROM `%s` %s", sqlvalname, sqltable, condicion);
 	mysql_query(query);
 	mysql_store_result();
 	if(mysql_num_rows())
@@ -79,11 +92,11 @@ public MySQLGetStr(sqlid, sqltable[], sqlvalname[], sqldest[])
 	return 0;
 }
 
-public MySQLGetInt(sqlid, sqltable[], sqlvalname[])
+public MySQLGetInt(sqltable[], sqlvalname[], condicion[])
 {
 	new query[256];
 	new field[15];
-	format(query, sizeof(query), "SELECT `%s` FROM `%s` WHERE `id` = %d", sqlvalname, sqltable, sqlid);
+	format(query, sizeof(query), "SELECT `%s` FROM `%s` %s", sqlvalname, sqltable, condicion);
 	mysql_query(query);
 	mysql_store_result();
 	if(mysql_num_rows())
@@ -95,11 +108,11 @@ public MySQLGetInt(sqlid, sqltable[], sqlvalname[])
 	return 0;
 }
 
-public MySQLGetFlo(sqlid, sqltable[], sqlvalname[], &Float:sqldest)
+public MySQLGetFlo(sqltable[], sqlvalname[], &Float:sqldest, condicion[])
 {
 	new query[256];
 	new field[128];
-	format(query, sizeof(query), "SELECT `%s` FROM `%s` WHERE `id` = %d", sqlvalname, sqltable, sqlid);
+	format(query, sizeof(query), "SELECT `%s` FROM `%s` %s", sqlvalname, sqltable, condicion);
 	mysql_query(query);
 	mysql_store_result();
 	if(mysql_num_rows())
@@ -108,6 +121,68 @@ public MySQLGetFlo(sqlid, sqltable[], sqlvalname[], &Float:sqldest)
 	}
 	mysql_free_result();
 	return 0;
+}
+
+public MySQLUpdateInt(sqltable[], sqlvalname[], sqlupdateint, condicion[])
+{
+	new updval[256];
+	format(updval, sizeof(updval), "UPDATE `%s` SET `%s`=%d %s", sqltable, sqlvalname, sqlupdateint, condicion);
+	mysql_query(updval);
+	return 1;
+}
+
+public MySQLUpdateFlo(sqltable[], sqlvalname[], Float:sqlupdateflo, condicion[])
+{
+	new updval[256];
+	format(updval, sizeof(updval), "UPDATE `%s` SET `%s`=%f %s", sqltable, sqlvalname, sqlupdateflo, condicion);
+	mysql_query(updval);
+	return 1;
+}
+
+public MySQLUpdateStr(sqltable[], sqlvalname[], sqlupdatestr[], condicion[])
+{
+	new updval[256];
+	//mysql_real_escape_string(sqlupdatestr, sqlupdatestr);
+	format(updval, sizeof(updval), "UPDATE `%s` SET `%s`='%s' %s", sqltable, sqlvalname, sqlupdatestr, condicion);
+	mysql_query(updval);
+	return 1;
+}
+
+public MySQLCheckPlayer(playername[])
+{
+	new query[256];
+    format(query, sizeof(query), "SELECT `IDChar` FROM `%s` WHERE `Name` = '%s'", CHARINFOTABLE, playername);
+    mysql_query(query);
+    mysql_store_result();
+    if(mysql_num_rows())
+    {
+        mysql_free_result();
+		return 1;
+	}
+	mysql_free_result();
+	return 0;
+}
+
+public MySQLCountRows(table[], condicion[])
+{
+	new query[256];
+	format(query, sizeof(query), "SELECT * FROM `%s` %s", table, condicion);
+	mysql_query(query);
+	mysql_store_result();
+	return mysql_num_rows();
+}
+
+public MySQLRegisterPlayer(playername[], password[])
+{
+	new query[256];
+	new condicion[256];
+	new IDChar = MySQLCountRows(CHARINFOTABLE, "") + 1;
+	format(query, sizeof(query), "INSERT INTO `%s` (`IDChar`) VALUES (%d)", CHARINFOTABLE, IDChar);
+	mysql_query(query);
+	format(condicion, sizeof(condicion), "WHERE `IDChar`=%d",IDChar); 
+	MySQLUpdateStr(CHARINFOTABLE, "Name", playername, condicion);
+	MySQLUpdateStr(CHARINFOTABLE, "Key", password, condicion);
+	return 1;
 }
 
 stock splita(const strsrc[], strdest[][], delimiter)
@@ -128,3 +203,4 @@ stock splita(const strsrc[], strdest[][], delimiter)
     }
     return 1;
 }
+

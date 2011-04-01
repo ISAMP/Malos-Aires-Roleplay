@@ -22,6 +22,11 @@
 // Encargados del Script: Nevermore, Froda, Rodam, Razzo
 //------------------------------------------------------
 
+// Includes Generales
+//------------------------------------------------------
+#include <a_samp>
+#include <core>
+
 // Prototipos de Funciones
 //------------------------------------------------------
 forward ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5);
@@ -72,4 +77,23 @@ public ProxDetector(Float:radi, playerid, string[],col1,col2,col3,col4,col5)
 		}
 	}
 	return 1;
+}
+
+strtok(const string[], &index)
+{
+	new length = strlen(string);
+	while ((index < length) && (string[index] <= ' '))
+	{
+		index++;
+	}
+
+	new offset = index;
+	new result[20];
+	while ((index < length) && (string[index] > ' ') && ((index - offset) < (sizeof(result) - 1)))
+	{
+		result[index - offset] = string[index];
+		index++;
+	}
+	result[index - offset] = EOS;
+	return result;
 }
