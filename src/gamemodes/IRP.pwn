@@ -119,16 +119,14 @@ public LoginPlayer(playerid, password[])
 		ClearChatBox(playerid, 5);
 		if(MySQLCheckPlayer(PlayerName))
 		{
-			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/conectar [contraseña]\" para conectarte al servidor.", PlayerName, playerid);
-			SendClientMessage(playerid, COLOR_WHITE, string);
+			SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Usa \"/conectar [contraseña]\" para conectarte al servidor.");
 		}
 		else
 		{
-			format(string, sizeof(string), "Servidor: {AFAFAF}¡No estás registrado en Imperium SA-MP Roleplay!", PlayerName, playerid);
-			SendClientMessage(playerid, COLOR_WHITE, string);
-			format(string, sizeof(string), "Servidor: {AFAFAF}Usa \"/registrar [contraseña]\" para registrarte en el servidor.", PlayerName, playerid);
-			SendClientMessage(playerid, COLOR_WHITE, string);
+			SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}¡No estás registrado en Imperium SA-MP Roleplay!");
+			SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Usa \"/registrar [contraseña]\" para registrarte en el servidor.");
 		}
+		SpawnPlayer(playerid);
 		return 1;
 	}
 
@@ -163,9 +161,16 @@ public LoginPlayer(playerid, password[])
 		if(IsPlayerNPC(playerid)) return 1;
 		
 		SpawnPlayer(playerid);
-		OnPlayerSpawn(playerid);
 
-		return 0;
+		return false;
+	}
+	
+	// OnPlayerDeath
+	//------------------------------------------------------
+	public OnPlayerDeath(playerid, killerid, reason)
+	{
+	    SpawnPlayer(playerid);
+	    return 1;
 	}
 	
 	// OnPlayerText
