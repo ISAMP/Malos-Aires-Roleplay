@@ -82,7 +82,7 @@ public LoginPlayer(playerid, password[])
     else // No Existe?
     {
 		SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}El personaje no existe o la contraseña es incorrecta.");
-  		ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Conectarse", "{FF0000}Escribi tu contrasena para\n conectarte al servidor.", "Conectar", "Cancelar");
+  		ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Conectarse", "{AFAFAF}Escribi tu contrasena para\n conectarte al servidor.", "Conectar", "Cancelar");
     }
     return 1;
 }
@@ -119,12 +119,12 @@ public LoginPlayer(playerid, password[])
 		SendClientMessage(playerid, COLOR_LIGHTGREEN, "_____________________________________________");
 		if(MySQLCheckPlayer(PlayerName))
 		{
-		    ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Conectarse", "{FF0000}Escribi tu contrasena para\n conectarte al servidor.", "Conectar", "Cancelar");
+		    ShowPlayerDialog(playerid, DIALOG_LOGIN, DIALOG_STYLE_INPUT, "Conectarse", "{AFAFAF}Escribi tu contrasena para\n conectarte al servidor.", "Conectar", "Cancelar");
 		}
 		else
 		{
 			SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}¡No estás registrado en Imperium SA-MP Roleplay!");
-		    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registro", "{FF0000}Escribi una contrasena para\n registrarte en el servidor.", "Registrar", "Cancelar");
+		    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registro", "{AFAFAF}Escribi una contrasena para\n registrarte en el servidor.", "Registrar", "Cancelar");
 		}
 		SpawnPlayer(playerid);
 		return 1;
@@ -147,6 +147,24 @@ public LoginPlayer(playerid, password[])
 
 		SetPlayerSkin(playerid, GetPVarInt(playerid, "Skin"));
 		SetPlayerColor(playerid, COLOR_WHITE);
+		
+		if(GetPVarInt(playerid, "Registro"))
+		{
+			SetPlayerInterior(playerid, 14);
+			SetPlayerVirtualWorld(playerid, 1);
+			
+			// Aeropuerto
+		    //SetPlayerCameraPos(playerid, 1948.5838, -2167.4675, 22.8161);
+		    //SetPlayerCameraLookAt(playerid, 1967.8011, -2193.1845, 13.1961);
+		    
+		    // Aeropuerto Adentro
+		    SetPlayerCameraPos(playerid, -1833.6008, 15.7789, 1062.2425);
+		    SetPlayerCameraLookAt(playerid, -1838.0209, 22.6730, 1060.7927);
+		    
+		    ShowPlayerDialog(playerid, DIALOG_MAIL, DIALOG_STYLE_INPUT, "Registro", "{AFAFAF}Para continuar con el registro, ingrese su mail.", "Enviar", "Cancelar");
+		    
+		    return 1;
+		}
 		
 		SetPlayerInterior(playerid, 0);
 		SetPlayerVirtualWorld(playerid, 0);
@@ -222,7 +240,7 @@ public LoginPlayer(playerid, password[])
 		if(MySQLCheckPlayer(PlayerName))
 		{
 			SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}Este nombre ya está Registrado. Use /conectar para ingresar al servidor.");
-		    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registro", "{FF0000}Escribi una contrasena para\n registrarte en el servidor.", "Registrar", "Cancelar");
+		    ShowPlayerDialog(playerid, DIALOG_REGISTER, DIALOG_STYLE_INPUT, "Registro", "{AFAFAF}Escribi una contrasena para\n registrarte en el servidor.", "Registrar", "Cancelar");
 			return 1;
 		}
 		
@@ -230,6 +248,7 @@ public LoginPlayer(playerid, password[])
 		Password = strtok(params, idx);
 		MySQLRegisterPlayer(PlayerName, Password);
 		SendClientMessage(playerid, COLOR_WHITE, "Servidor: {AFAFAF}¡Gracias por registrarse en Imperium SA-MP Roleplay!");
+		SetPVarInt(playerid, "Registro", 1);
 		LoginPlayer(playerid, Password);
 		return 1;
 	}
