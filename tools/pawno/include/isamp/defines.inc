@@ -1,7 +1,7 @@
 //------------------------------------------------------
 
 /*
-	Defines Script Imperium SA-MP
+	Este archivo es parte del Proyecto Malos Aires 2.0
     Copyright (C) 2011  Imperium Games
 
     This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,11 @@
 //------------------------------------------------------
 // Encargados del Script: Nevermore, Froda, Rodam, Razzo
 //------------------------------------------------------
+
+// Variables
+//------------------------------------------------------
+// TextDraws
+new Text:gBanner;
 
 // Defines
 //------------------------------------------------------
@@ -59,6 +64,7 @@
 // Diálogos
 #define DIALOG_LOGIN 1
 #define DIALOG_REGISTER 2
+#define DIALOG_MAIL 3
 
 // Variables Globales
 new Condicion[128];

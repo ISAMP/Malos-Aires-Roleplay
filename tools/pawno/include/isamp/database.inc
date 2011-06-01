@@ -1,7 +1,7 @@
 //------------------------------------------------------
 
 /*
-	Database Handler Script Imperium SA-MP
+	Este archivo es parte del Proyecto Malos Aires 2.0
     Copyright (C) 2011  Imperium Games
 
     This program is free software: you can redistribute it and/or modify
